@@ -1,5 +1,7 @@
-BOT_API_TOKEN = ''
+import os
 
+
+BOT_API_TOKEN = os.environ.get("BOT_API_TOKEN")
 HELLO_MESSAGE = "Hi there!\n" \
         "I am a bot who will help you with your work in STU AIS and STU Ubytovanie. \n" \
         "At the moment I have few unique features.\n" \

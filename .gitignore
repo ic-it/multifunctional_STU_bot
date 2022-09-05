@@ -1,6 +1,5 @@
 */__pycache__/*
+temp_images/*.png
 
 *.pyc
 *.pyo
-
-config.py
