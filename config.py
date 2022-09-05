@@ -8,4 +8,7 @@ HELLO_MESSAGE = "Hi there!\n" \
         "\n" \
         "Data Storage Policy:\n" \
         "Bot stores username and password in RAM. Login and password are not displayed in the bot logs. After each reboot, the bot data is reset.\n" \
-        "If bot have stopped working — re-login."
+        "If bot have stopped working — re-login.\n" \
+        "\n" \
+        "Bot is open source.\n"\
+        "Project page on GitHub: https://github.com/ic-it/multifunctional_STU_bot"
