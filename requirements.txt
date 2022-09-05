@@ -1,0 +1,5 @@
+aiogram==2.14.3
+lxml==4.6.3
+aiohttp==3.8.1
+pay-by-square==0.2.0
+qrcode-styled==0.2.1
