@@ -19,6 +19,18 @@ from antiflood import ThrottlingMiddleware, rate_limit
 
 
 
+class LogMiddleware(BaseMiddleware):
+    def __init__(self):
+        super(LogMiddleware, self).__init__()
+
+    async def on_process_message(self, message: types.Message, data: dict):
+        state = await data.get('state').get_state() if data.get('state') else None
+        if state and state.startswith('LoginForm'):
+            print(f"Message[{message.from_user.id}][@{message.from_user.username}][{message.from_user.full_name}][{state}]: {'*'*len(message.text)}")
+            return
+        print(f"Message[{message.from_user.id}][@{message.from_user.username}][{message.from_user.full_name}][{state}]: {message.text}")
+
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -107,20 +119,8 @@ async def get_user_password(message: types.Message, state: FSMContext):
     await message.answer_photo(photo=open(f'./temp_images/{message.from_user.id}.png', 'rb'), caption="Scan to pay")
 
 
-class LogMiddleware(BaseMiddleware):
-    def __init__(self):
-        super(LogMiddleware, self).__init__()
-
-    async def on_process_message(self, message: types.Message, data: dict):
-        state = await data.get('state').get_state() if data.get('state') else None
-        if state and state.startswith('LoginForm'):
-            print(f"Message[{message.from_user.id}][@{message.from_user.username}][{message.from_user.full_name}][{state}]: {'*'*len(message.text)}")
-            return
-        print(f"Message[{message.from_user.id}][@{message.from_user.username}][{message.from_user.full_name}][{state}]: {message.text}")
-
 if __name__ == '__main__':
     dp.middleware.setup(ThrottlingMiddleware())
     dp.middleware.setup(LogMiddleware())
-
 
     executor.start_polling(dp, skip_updates=True)
