@@ -1,4 +1,4 @@
-aiogram==2.14.3
+aiogram
 lxml==4.6.3
 aiohttp==3.8.1
 pay-by-square==0.2.0
