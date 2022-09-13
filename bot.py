@@ -1,4 +1,5 @@
 import asyncio
+import aiogram
 import logging
 import config
 
@@ -87,13 +88,32 @@ async def get_user_password(message: types.Message, state: FSMContext):
             })
             await message.answer("Login successful!")
             await message.answer("/getdata - get data from Ubytovanie")
+            await message.answer("/getme - get data from Ais")
+            await message.answer("/getplan - get plan from Ais")
             await state.finish()
             await BotStates.home.set()
             await message.delete()
             return
 
+@dp.message_handler(state=BotStates.home, commands='getme')
+@rate_limit(2, 'BotStates.home')
+async def get_user_password(message: types.Message, state: FSMContext):    
+    await message.answer("Wait a minute. Loading data...")
+    user_data = await dp.storage.get_data(user=message.from_user.id)
 
-@dp.message_handler(state=BotStates.home)
+    async with AisParser(asyncio.get_event_loop(), user_data.get("login"), user_data.get("password")) as parser:
+        await parser.login()
+        ais_user = await parser.get_user_data()
+        ais_university_networ = await parser.get_university_network()
+    
+    msg = f"User Data\n" \
+            f"name: <code>{ais_user.name}</code>\n"\
+            f"ais_id: <code>{ais_user.ais_id}</code>\n"\
+            f"ais_network_login: <code>{ais_university_networ.login}</code>\n" \
+            f'ais_network_password: <span class="tg-spoiler">{ais_university_networ.password}</span>\n'
+    await message.answer(msg, parse_mode=ParseMode.HTML)
+
+@dp.message_handler(state=BotStates.home, commands='getdata')
 @rate_limit(2, 'BotStates.home')
 async def get_user_password(message: types.Message, state: FSMContext):    
     await message.answer("Wait a minute. Loading data...")
@@ -115,9 +135,20 @@ async def get_user_password(message: types.Message, state: FSMContext):
 
     with open(f'./temp_images/{message.from_user.id}.png', 'wb') as _fh:
         qr.get_image(uby_user.payment.scan_to_pay_code).save(_fh, 'PNG', lossless=False, quaility=250, method=2)
-    
+
     await message.answer_photo(photo=open(f'./temp_images/{message.from_user.id}.png', 'rb'), caption="Scan to pay")
 
+@dp.message_handler(state=BotStates.home, commands='getplan')
+@rate_limit(2, 'BotStates.home')
+async def get_user_password(message: types.Message, state: FSMContext):    
+    await message.answer("Wait a minute. Loading data...")
+    user_data = await dp.storage.get_data(user=message.from_user.id)
+
+    async with AisParser(asyncio.get_event_loop(), user_data.get("login"), user_data.get("password")) as parser:
+        await parser.login()
+        rozvrh = await parser.get_study_schedule()
+
+    await message.answer_document(document=open(rozvrh, 'rb'))
 
 if __name__ == '__main__':
     dp.middleware.setup(ThrottlingMiddleware())

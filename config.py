@@ -13,4 +13,5 @@ HELLO_MESSAGE = "Hi there!\n" \
         "If bot have stopped working — re-login.\n" \
         "\n" \
         "Bot is open source.\n"\
-        "Project page on GitHub: https://github.com/ic-it/multifunctional_STU_bot"
+        "Project page on GitHub:\n" \
+        "https://github.com/ic-it/multifunctional_STU_bot"

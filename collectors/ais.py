@@ -10,6 +10,12 @@ class AisUser:
     name: str
     ais_id : int
 
+@dataclass
+class AisUniversityNetwork:
+    login: str
+    password: str
+
+
 class AisParser(BaseParser):
     def __init__(self, loop: asyncio.AbstractEventLoop, login: str = None, password: str = None) -> None:
         super().__init__(loop)
@@ -54,10 +60,45 @@ class AisParser(BaseParser):
             return response.status == 302
         return False
     
-    async def get_user_data(self):
+    async def get_user_data(self) -> AisUser:
         async with self._session.get('https://is.stuba.sk/auth/kontrola/') as response:
             dom = etree.HTML(await response.text())
         
         return AisUser(
             name=dom.xpath('//*[@id="tmtab_1"]/tbody/tr[1]/td[2]/text()')[0],
             ais_id=int(dom.xpath('//*[@id="tmtab_1"]/tbody/tr[2]/td[2]/text()')[0]))
+    
+    async def get_university_network(self) -> AisUniversityNetwork:
+        async with self._session.get('https://is.stuba.sk/auth/wifi/heslo_vpn_sit.pl') as response:
+            dom = etree.HTML(await response.text())
+        
+        login = dom.xpath('//tbody/tr[1]/td[2]/b/text()')[0]
+        password = dom.xpath('//tbody/tr[2]/td[2]/b/text()')[0]
+
+        return AisUniversityNetwork(login=login, password=password)
+    
+    async def get_study_schedule(self) -> str:
+        ais_id = (await self.get_user_data()).ais_id
+        data = {
+            'lang': 'sk',
+            'rozvrh_student': ais_id,
+            'rezervace': '0',
+            'poznamky_base': '1',
+            'poznamky_zmeny': '1',
+            'poznamky_parovani': '1',
+            'poznamky_dalsi_ucit': '1',
+            'poznamky_jiny_areal': '1',
+            'poznamky_dl_omez': '1',
+            'typ_vypisu': 'souhrn',
+            'konani_od': '12.09.2022',
+            'konani_do': '18.09.2022',
+            'format': 'pdf',
+            'nezvol_all': '1',
+            'poznamky': '1',
+            'zobraz': '1',
+            'zobraz2': 'Zobraziť',
+        }
+        async with self._session.post('https://is.stuba.sk/auth/katalog/rozvrhy_view.pl', data=data) as response:
+            with open(f'temp_images/{ais_id}_rozvrh.pdf', 'wb') as f:
+                f.write(await response.read())
+            return f'temp_images/{ais_id}_rozvrh.pdf'
